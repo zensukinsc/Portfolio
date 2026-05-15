@@ -9,7 +9,7 @@ const MotionLink = motion.create(Link);
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/** Deliver to zengawangsc@gmail.com: create a free key at https://web3forms.com using that address, then set VITE_WEB3FORMS_ACCESS_KEY in `.env`. */
+/** Set `VITE_WEB3FORMS_ACCESS_KEY` in `.env` locally or in your host (e.g. Netlify) for production. */
 const WEB3FORMS_ACCESS_KEY = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY as
   | string
   | undefined;
@@ -51,7 +51,7 @@ export function ContactPage() {
     if (!configured) {
       setStatus('error');
       setErrorMessage(
-        'Add VITE_WEB3FORMS_ACCESS_KEY to your .env file (see web3forms.com).'
+        'The form is not configured yet. Add VITE_WEB3FORMS_ACCESS_KEY to a .env file for local dev, or to your site’s environment variables on Netlify (then redeploy). Get a free key at web3forms.com.'
       );
       return;
     }
@@ -154,26 +154,6 @@ export function ContactPage() {
             >
               Message
             </h2>
-            {!configured ? (
-              <p className="mt-4 rounded-lg border border-amber-500/35 bg-amber-500/10 px-4 py-3 font-sans text-sm leading-relaxed text-amber-100/95">
-                To enable sending: sign up at{' '}
-                <a
-                  href="https://web3forms.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  web3forms.com
-                </a>{' '}
-                with <strong className="font-semibold">zengawangsc@gmail.com</strong>,
-                copy your access key, and add{' '}
-                <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs">
-                  VITE_WEB3FORMS_ACCESS_KEY=…
-                </code>{' '}
-                to <code className="rounded bg-white/10 px-1.5 py-0.5 text-xs">.env</code>{' '}
-                in the project root, then restart the dev server.
-              </p>
-            ) : null}
 
             <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-6">
               <div>

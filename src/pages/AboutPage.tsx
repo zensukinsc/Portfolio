@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
+import { RESUME_FILENAME, RESUME_HREF } from '../components/Resume';
 
 const MotionLink = motion.create(Link);
 
@@ -247,7 +248,7 @@ export function AboutPage() {
             <div className="flex flex-wrap gap-4">
               <MotionLink
                 to="/projects"
-                className="inline-flex items-center justify-center rounded-full border-2 border-white bg-white px-6 py-3 font-serif text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors hover:bg-transparent hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-white bg-white px-6 py-3 font-serif text-xs font-bold uppercase tracking-[0.2em] text-black transition-colors hover:bg-transparent hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 whileHover={reduce ? undefined : { scale: 1.02 }}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
               >
@@ -255,7 +256,7 @@ export function AboutPage() {
               </MotionLink>
               <MotionLink
                 to="/contact"
-                className="inline-flex items-center justify-center rounded-full border-2 border-white/35 px-6 py-3 font-serif text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                className="inline-flex min-h-[48px] items-center justify-center rounded-full border-2 border-white/35 px-6 py-3 font-serif text-xs font-bold uppercase tracking-[0.2em] text-white transition-colors hover:border-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                 whileHover={reduce ? undefined : { scale: 1.02 }}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
               >
@@ -263,6 +264,32 @@ export function AboutPage() {
               </MotionLink>
             </div>
           </motion.div>
+        </section>
+
+        <section
+          className="w-full border-t border-white/10 px-6 py-14 md:px-12 md:py-16 lg:px-16"
+          aria-labelledby="about-resume-heading"
+        >
+          <div className="mx-auto flex max-w-[1600px] flex-col gap-6 rounded-2xl border border-white/15 bg-white/[0.04] p-8 md:flex-row md:items-center md:justify-between md:gap-10 md:p-10">
+            <div className="max-w-xl">
+              <h2
+                id="about-resume-heading"
+                className="font-serif text-xl font-bold uppercase tracking-tight text-white md:text-2xl"
+              >
+                Resume
+              </h2>
+              <p className="mt-3 font-serif text-base leading-relaxed text-white/65 md:text-lg">
+                One-page overview for recruiters and hiring managers.
+              </p>
+            </div>
+            <a
+              href={RESUME_HREF}
+              download={RESUME_FILENAME}
+              className="inline-flex min-h-[48px] shrink-0 items-center justify-center rounded-full bg-white px-8 py-3.5 font-sans text-sm font-bold uppercase tracking-[0.16em] text-black transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]"
+            >
+              Download PDF
+            </a>
+          </div>
         </section>
 
         <Footer />

@@ -113,6 +113,10 @@ export function NamasSkills({ scrollContainerRef }: NamasSkillsProps) {
     offset: ['start end', 'end start'],
     layoutEffect: false,
   });
+  // Complete the skills reveal before the section fully exits viewport.
+  const revealProgress = useTransform(scrollYProgress, [0, 0.82], [0, 1], {
+    clamp: true,
+  });
 
   const bgGlow = useTransform(
     scrollYProgress,
@@ -152,7 +156,7 @@ export function NamasSkills({ scrollContainerRef }: NamasSkillsProps) {
               key={skill}
               index={index}
               total={SKILLS.length}
-              scrollYProgress={scrollYProgress}
+              scrollYProgress={revealProgress}
               reduceMotion={!!reduce}
             >
               {skill}

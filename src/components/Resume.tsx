@@ -1,8 +1,8 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowDownRight } from 'lucide-react';
 
-const RESUME_HREF = '/resume.pdf';
-const RESUME_FILENAME = 'Resume.pdf';
+export const RESUME_HREF = '/resume.pdf';
+export const RESUME_FILENAME = 'Resume.pdf';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 

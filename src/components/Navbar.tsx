@@ -1,13 +1,13 @@
 import { useEffect, useId, useState, type RefObject } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, MessageCircle, X } from 'lucide-react';
 
 const NAV_LINKS = [
   { num: '01', label: 'Home', to: '/' },
   { num: '02', label: 'About', to: '/about' },
   { num: '03', label: 'Projects', to: '/projects' },
-  { num: '04', label: 'Resume', to: '/#resume' },
+  { num: '04', label: 'Resume', href: '/resume.pdf', download: true },
   { num: '05', label: 'Contact', to: '/contact' },
 ] as const;
 
@@ -58,9 +58,11 @@ type NavbarProps = {
 
 export function Navbar({ scrollContainerRef, solidHeader }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [brandOpacity, setBrandOpacity] = useState(solidHeader ? 1 : 0);
   const reduceMotion = useReducedMotion();
   const menuId = useId();
-
+  const { pathname } = useLocation();
+  const isHomePage = pathname === '/';
   useEffect(() => {
     const el = scrollContainerRef?.current;
     if (!menuOpen || !el) return;
@@ -80,6 +82,36 @@ export function Navbar({ scrollContainerRef, solidHeader }: NavbarProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (solidHeader || !isHomePage) {
+      setBrandOpacity(1);
+      return;
+    }
+
+    const scrollEl = scrollContainerRef?.current;
+    if (!scrollEl) {
+      setBrandOpacity(0);
+      return;
+    }
+
+    const updateBrandOpacity = () => {
+      const fadeStart = Math.max(120, Math.round(scrollEl.clientHeight * 0.58));
+      const fadeEnd = Math.max(fadeStart + 1, Math.round(scrollEl.clientHeight * 0.9));
+      const progress = (scrollEl.scrollTop - fadeStart) / (fadeEnd - fadeStart);
+      const clamped = Math.max(0, Math.min(1, progress));
+      setBrandOpacity(clamped);
+    };
+
+    updateBrandOpacity();
+    scrollEl.addEventListener('scroll', updateBrandOpacity, { passive: true });
+    window.addEventListener('resize', updateBrandOpacity);
+
+    return () => {
+      scrollEl.removeEventListener('scroll', updateBrandOpacity);
+      window.removeEventListener('resize', updateBrandOpacity);
+    };
+  }, [isHomePage, scrollContainerRef, solidHeader]);
+
   const panelMotion = reduceMotion
     ? {
         initial: { opacity: 0 },
@@ -96,6 +128,27 @@ export function Navbar({ scrollContainerRef, solidHeader }: NavbarProps) {
 
   const listMotionVariants = reduceMotion ? listVariantsReduced : listVariants;
   const itemMotionVariants = reduceMotion ? itemVariantsReduced : itemVariants;
+  const brandVisible = !isHomePage || brandOpacity >= 0.02;
+  const handleBrandClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    closeMenuAfter = false
+  ) => {
+    if (closeMenuAfter) setMenuOpen(false);
+
+    const target = scrollContainerRef?.current;
+    const currentTop = target ? target.scrollTop : window.scrollY;
+    const isAtTop = currentTop <= 8;
+
+    // If not at top, keep user on current page and scroll to top.
+    if (!isAtTop) {
+      e.preventDefault();
+      if (target) {
+        target.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <>
@@ -124,7 +177,13 @@ export function Navbar({ scrollContainerRef, solidHeader }: NavbarProps) {
           <div className="flex flex-none justify-center">
             <Link
               to="/"
+              onClick={(e) => handleBrandClick(e)}
+              aria-hidden={!brandVisible}
               className="font-serif text-xl font-bold tracking-wide text-white md:text-2xl lg:text-3xl"
+              style={{
+                opacity: !isHomePage ? 1 : brandOpacity,
+                pointerEvents: !isHomePage || brandOpacity > 0.95 ? 'auto' : 'none',
+              }}
             >
               Zensuki
             </Link>
@@ -174,7 +233,7 @@ export function Navbar({ scrollContainerRef, solidHeader }: NavbarProps) {
               <div className="flex flex-none justify-center">
                 <Link
                   to="/"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(e) => handleBrandClick(e, true)}
                   className="font-serif text-xl font-bold tracking-wide md:text-2xl lg:text-3xl"
                 >
                   Zensuki
@@ -203,20 +262,36 @@ export function Navbar({ scrollContainerRef, solidHeader }: NavbarProps) {
                 initial="hidden"
                 animate="visible"
               >
-                {NAV_LINKS.map(({ num, label, to }) => (
-                  <motion.li key={to} variants={itemMotionVariants}>
-                    <Link
-                      to={to}
-                      onClick={() => setMenuOpen(false)}
-                      className="group flex items-baseline gap-4 md:gap-6"
-                    >
-                      <span className="font-sans text-xs font-semibold tabular-nums text-black/45 md:text-sm">
-                        {num}
-                      </span>
-                      <span className="font-serif text-4xl font-bold uppercase leading-none tracking-tight text-black md:text-6xl lg:text-7xl">
-                        {label}
-                      </span>
-                    </Link>
+                {NAV_LINKS.map((item) => (
+                  <motion.li key={item.label} variants={itemMotionVariants}>
+                    {'href' in item ? (
+                      <a
+                        href={item.href}
+                        download
+                        onClick={() => setMenuOpen(false)}
+                        className="group flex items-baseline gap-4 md:gap-6"
+                      >
+                        <span className="font-sans text-xs font-semibold tabular-nums text-black/45 md:text-sm">
+                          {item.num}
+                        </span>
+                        <span className="font-serif text-4xl font-bold uppercase leading-none tracking-tight text-black md:text-6xl lg:text-7xl">
+                          {item.label}
+                        </span>
+                      </a>
+                    ) : (
+                      <Link
+                        to={item.to}
+                        onClick={() => setMenuOpen(false)}
+                        className="group flex items-baseline gap-4 md:gap-6"
+                      >
+                        <span className="font-sans text-xs font-semibold tabular-nums text-black/45 md:text-sm">
+                          {item.num}
+                        </span>
+                        <span className="font-serif text-4xl font-bold uppercase leading-none tracking-tight text-black md:text-6xl lg:text-7xl">
+                          {item.label}
+                        </span>
+                      </Link>
+                    )}
                   </motion.li>
                 ))}
               </motion.ul>

@@ -15,6 +15,7 @@ const PD_SCROLL_END = 0.52;
 const TITLE_REVEAL: readonly [number, number] = [0.05, 0.26];
 const PROJECT_REVEAL: readonly [number, number] = [0.14, 0.42];
 const ROLE_REVEAL: readonly [number, number] = [0.36, 0.64];
+const CONTRIBUTION_REVEAL: readonly [number, number] = [0.46, 0.72];
 const TOOLS_CARD_REVEAL: readonly [number, number] = [0.52, 0.88];
 
 function ScrollRevealSection({
@@ -316,6 +317,25 @@ export const InstaKillProjectData = forwardRef<HTMLElement, InstaKillProjectData
                 <p className="mt-4 max-w-md font-serif text-sm leading-relaxed text-white/70">
                   Brand &amp; Visual Designer
                 </p>
+              </ScrollRevealSection>
+              <ScrollRevealSection
+                scrollYProgress={scrollYProgress}
+                range={CONTRIBUTION_REVEAL}
+                className="flex max-w-xl flex-col items-end self-end text-right"
+              >
+                <RevealHairline
+                  scrollYProgress={scrollYProgress}
+                  range={CONTRIBUTION_REVEAL}
+                  origin="right"
+                />
+                <h4 className="mt-4 font-serif text-xl font-bold text-white md:text-2xl">
+                  My contribution
+                </h4>
+                <ul className="mt-4 max-w-md list-disc list-inside space-y-2 font-serif text-sm leading-relaxed text-white/70">
+                  <li>Developed the core visual identity and brand direction for Insta Kill.</li>
+                  <li>Designed logo treatments, social assets, and presentation-ready visuals.</li>
+                  <li>Established a cohesive style system to keep outputs consistent across platforms.</li>
+                </ul>
               </ScrollRevealSection>
             </div>
             <div className="space-y-6">

@@ -1,6 +1,7 @@
 import { motion, useMotionValue, useReducedMotion } from 'framer-motion';
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -108,7 +109,20 @@ const SERVICES = [
   },
 ] as const;
 
-const spring = { type: 'spring' as const, stiffness: 380, damping: 36 };
+/**
+ * Tween (no spring overshoot): flex reflow under the cursor won’t fight hover
+ * hit-testing the way springs + mouseenter/mouseleave can.
+ */
+const panelTween = {
+  type: 'tween' as const,
+  duration: 0.68,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
+
+const panelTransitionReduced = {
+  duration: 0.68,
+  ease: [0.22, 1, 0.36, 1] as const,
+};
 
 type ServicesProps = {
   scrollContainerRef: RefObject<HTMLElement | null>;
@@ -120,8 +134,89 @@ export function Services({ scrollContainerRef }: ServicesProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  /** Hover-driven panels on real pointers; touch keeps click. */
+  const [useHoverPanels, setUseHoverPanels] = useState(false);
   const prefersReducedMotion = useReducedMotion();
   const x = useMotionValue(0);
+
+  useLayoutEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const sync = () => setUseHoverPanels(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  /** Hover: pick column by pointer position so flex animation can’t thrash enter/leave. */
+  const columnsWrapRef = useRef<HTMLDivElement>(null);
+  const pointerRafRef = useRef<number | null>(null);
+  const pendingPointerRef = useRef<{ x: number; y: number } | null>(null);
+
+  const resolveColumnIdAtPoint = useCallback((clientX: number, clientY: number) => {
+    const wrap = columnsWrapRef.current;
+    if (!wrap) return null;
+    const kids = wrap.children;
+    for (let i = 0; i < kids.length; i++) {
+      const r = (kids[i] as HTMLElement).getBoundingClientRect();
+      const last = i === kids.length - 1;
+      const xHit = last
+        ? clientX >= r.left && clientX <= r.right
+        : clientX >= r.left && clientX < r.right;
+      if (xHit && clientY >= r.top && clientY <= r.bottom) {
+        return SERVICES[i].id;
+      }
+    }
+    return null;
+  }, []);
+
+  const schedulePickFromPointer = useCallback(() => {
+    if (pointerRafRef.current != null) return;
+    pointerRafRef.current = requestAnimationFrame(() => {
+      pointerRafRef.current = null;
+      const pt = pendingPointerRef.current;
+      if (!pt || !useHoverPanels) return;
+      const id = resolveColumnIdAtPoint(pt.x, pt.y);
+      if (id != null) {
+        setExpandedId((prev) => (prev === id ? prev : id));
+      }
+    });
+  }, [resolveColumnIdAtPoint, useHoverPanels]);
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!useHoverPanels) return;
+      pendingPointerRef.current = { x: e.clientX, y: e.clientY };
+      schedulePickFromPointer();
+    },
+    [schedulePickFromPointer, useHoverPanels]
+  );
+
+  const handlePointerEnter = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!useHoverPanels) return;
+      pendingPointerRef.current = { x: e.clientX, y: e.clientY };
+      schedulePickFromPointer();
+    },
+    [schedulePickFromPointer, useHoverPanels]
+  );
+
+  const handlePointerLeave = useCallback(() => {
+    if (!useHoverPanels) return;
+    if (pointerRafRef.current != null) {
+      cancelAnimationFrame(pointerRafRef.current);
+      pointerRafRef.current = null;
+    }
+    pendingPointerRef.current = null;
+    setExpandedId(null);
+  }, [useHoverPanels]);
+
+  useEffect(() => {
+    return () => {
+      if (pointerRafRef.current != null) {
+        cancelAnimationFrame(pointerRafRef.current);
+      }
+    };
+  }, []);
 
   const syncHorizontalFromScroll = useCallback(() => {
     const mainEl = scrollContainerRef.current;
@@ -241,7 +336,19 @@ export function Services({ scrollContainerRef }: ServicesProps) {
                 role="region"
                 aria-label="Services"
               >
-                <div className="flex h-full w-full min-w-0">
+                <div
+                  ref={columnsWrapRef}
+                  className="flex h-full w-full min-w-0"
+                  onPointerEnter={
+                    useHoverPanels ? handlePointerEnter : undefined
+                  }
+                  onPointerMove={
+                    useHoverPanels ? handlePointerMove : undefined
+                  }
+                  onPointerLeave={
+                    useHoverPanels ? handlePointerLeave : undefined
+                  }
+                >
                   {SERVICES.map((service, index) => {
                     const n = String(index + 1).padStart(2, '0');
                     const isOpen = expandedId === service.id;
@@ -274,8 +381,8 @@ export function Services({ scrollContainerRef }: ServicesProps) {
                         }
                         transition={
                           prefersReducedMotion
-                            ? { duration: 0.2 }
-                            : spring
+                            ? panelTransitionReduced
+                            : panelTween
                         }
                         className="relative h-full min-w-0 overflow-hidden border-r border-white"
                       >
@@ -285,21 +392,37 @@ export function Services({ scrollContainerRef }: ServicesProps) {
                             className="flex h-full min-w-0"
                             aria-labelledby={`service-heading-${service.id}`}
                           >
-                            <button
-                              type="button"
-                              onClick={() => setExpandedId(null)}
-                              className="flex w-14 shrink-0 cursor-pointer flex-col items-center border-r border-white/25 bg-black py-6 text-left transition-colors hover:bg-white/[0.04] md:w-[4.5rem] md:py-8"
-                              aria-label="Close service details"
-                            >
-                              <span className="font-sans text-[10px] font-medium tabular-nums text-white/45 md:text-[11px]">
-                                {n}
-                              </span>
-                              <div className="flex min-h-0 flex-1 items-center justify-center px-1">
-                                <span className="max-h-[min(85vh,720px)] origin-center -rotate-90 whitespace-nowrap font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white md:text-base lg:text-lg">
-                                  {service.title}
+                            {useHoverPanels ? (
+                              <div
+                                className="flex w-14 shrink-0 flex-col items-center border-r border-white/25 bg-black py-6 md:w-[4.5rem] md:py-8"
+                                aria-hidden
+                              >
+                                <span className="font-sans text-[10px] font-medium tabular-nums text-white/45 md:text-[11px]">
+                                  {n}
                                 </span>
+                                <div className="flex min-h-0 flex-1 items-center justify-center px-1">
+                                  <span className="max-h-[min(85vh,720px)] origin-center -rotate-90 whitespace-nowrap font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white md:text-base lg:text-lg">
+                                    {service.title}
+                                  </span>
+                                </div>
                               </div>
-                            </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setExpandedId(null)}
+                                className="flex w-14 shrink-0 cursor-pointer flex-col items-center border-r border-white/25 bg-black py-6 text-left transition-colors hover:bg-white/[0.04] md:w-[4.5rem] md:py-8"
+                                aria-label="Close service details"
+                              >
+                                <span className="font-sans text-[10px] font-medium tabular-nums text-white/45 md:text-[11px]">
+                                  {n}
+                                </span>
+                                <div className="flex min-h-0 flex-1 items-center justify-center px-1">
+                                  <span className="max-h-[min(85vh,720px)] origin-center -rotate-90 whitespace-nowrap font-sans text-sm font-semibold uppercase tracking-[0.14em] text-white md:text-base lg:text-lg">
+                                    {service.title}
+                                  </span>
+                                </div>
+                              </button>
+                            )}
                             <div className="min-h-0 min-w-0 flex-1 overflow-hidden bg-black px-4 py-6 sm:px-5 md:px-7 md:py-8">
                               <p className="font-sans text-[10px] font-medium tabular-nums text-white/40 md:text-[11px]">
                                 {n}
@@ -321,6 +444,21 @@ export function Services({ scrollContainerRef }: ServicesProps) {
                                 ))}
                               </ul>
                             </div>
+                          </div>
+                        ) : useHoverPanels ? (
+                          <div
+                            className="flex h-full w-full flex-col items-center bg-black py-7 transition-colors hover:bg-white/[0.04] md:py-9"
+                            aria-expanded={isOpen}
+                            aria-controls={`service-panel-${service.id}`}
+                          >
+                            <span className="font-sans text-[10px] font-medium tabular-nums text-white/40 md:text-[11px]">
+                              {n}
+                            </span>
+                            <span className="flex min-h-0 flex-1 items-center justify-center px-0.5">
+                              <span className="max-h-[min(85vh,720px)] origin-center -rotate-90 whitespace-nowrap font-sans text-sm font-bold uppercase tracking-[0.14em] text-white/70 md:text-base md:tracking-[0.16em] lg:text-lg">
+                                {service.title}
+                              </span>
+                            </span>
                           </div>
                         ) : (
                           <button

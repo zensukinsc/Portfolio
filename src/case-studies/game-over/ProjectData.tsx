@@ -15,6 +15,7 @@ const PD_SCROLL_END = 0.52;
 
 const PROJECT_REVEAL: readonly [number, number] = [0.14, 0.42];
 const ROLE_REVEAL: readonly [number, number] = [0.36, 0.64];
+const CONTRIBUTION_REVEAL: readonly [number, number] = [0.46, 0.72];
 const TOOLS_CARD_REVEAL: readonly [number, number] = [0.52, 0.88];
 
 function ScrollRevealSection({
@@ -281,6 +282,25 @@ export const GameOverProjectData = forwardRef<HTMLElement, GameOverProjectDataPr
                 <p className="mt-4 max-w-md font-serif text-sm leading-relaxed text-white/70">
                   Script Writer, Director of Photography, Video Editor
                 </p>
+              </ScrollRevealSection>
+              <ScrollRevealSection
+                scrollYProgress={scrollYProgress}
+                range={CONTRIBUTION_REVEAL}
+                className="flex max-w-xl flex-col items-end self-end text-right"
+              >
+                <RevealHairline
+                  scrollYProgress={scrollYProgress}
+                  range={CONTRIBUTION_REVEAL}
+                  origin="right"
+                />
+                <h4 className="mt-4 font-serif text-xl font-bold text-white md:text-2xl">
+                  My contribution
+                </h4>
+                <ul className="mt-4 max-w-md list-disc list-inside space-y-2 font-serif text-sm leading-relaxed text-white/70">
+                  <li>Wrote the narrative concept and script focused on gaming addiction awareness.</li>
+                  <li>Directed cinematography and shot planning to match the project tone.</li>
+                  <li>Edited and finished the video in post-production for final delivery.</li>
+                </ul>
               </ScrollRevealSection>
             </div>
             <div className="space-y-6">

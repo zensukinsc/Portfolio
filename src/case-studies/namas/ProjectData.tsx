@@ -391,10 +391,11 @@ export const NamasProjectData = forwardRef<HTMLElement, NamasProjectDataProps>(
                 <h4 className="mt-4 font-serif text-xl font-bold text-white md:text-2xl">
                   My contribution
                 </h4>
-                <p className="mt-4 max-w-md font-serif text-sm leading-relaxed text-white/70">
-                  Conceptualized and designed the website in Figma, built the frontend, and
-                  successfully deployed it to a live production environment.
-                </p>
+                <ul className="mt-4 max-w-md list-disc list-inside space-y-2 font-serif text-sm leading-relaxed text-white/70">
+                  <li>Led the UI/UX direction and designed the full interface system in Figma.</li>
+                  <li>Built responsive frontend pages and interaction flows for the full site.</li>
+                  <li>Handled deployment and launch to a live production environment.</li>
+                </ul>
               </ScrollRevealSection>
             </div>
             <div className="space-y-6">

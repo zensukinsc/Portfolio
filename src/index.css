@@ -21,11 +21,50 @@ body {
   font-family: 'Source Serif 4', ui-serif, Georgia, serif;
 }
 
+:root {
+  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 180ms;
+  --motion-medium: 320ms;
+}
+
 /* Scroll container: <main> in App.tsx — smooth in-page navigation & anchor links */
 main {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.06);
+}
+
+/* Dark themed scrollbar for app containers (Chromium/Safari/Edge) */
+main::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+main::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+main::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.36),
+    rgba(255, 255, 255, 0.2)
+  );
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.6);
+}
+
+main::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.28)
+  );
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -50,6 +89,24 @@ main {
   transform: rotate(180deg);
 }
 
+/* Shared interaction polish across links/buttons/cards */
+a,
+button {
+  transition:
+    color var(--motion-fast) var(--motion-ease-out),
+    background-color var(--motion-fast) var(--motion-ease-out),
+    border-color var(--motion-fast) var(--motion-ease-out),
+    transform var(--motion-medium) var(--motion-ease-out),
+    box-shadow var(--motion-medium) var(--motion-ease-out);
+}
+
+@media (hover: hover) {
+  a:hover,
+  button:hover {
+    will-change: transform;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -57,5 +114,10 @@ html {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  a,
+  button {
+    transition: none;
   }
 }

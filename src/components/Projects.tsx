@@ -29,7 +29,7 @@ function ProjectArticle({
 }) {
   const screenContent = (
     <LaptopFrame interactive={!project.href}>
-      <div className="pointer-events-none relative aspect-[4/3] max-h-[min(78vh,920px)] w-full md:aspect-[16/10]">
+      <div className="relative aspect-[4/3] max-h-[min(78vh,920px)] w-full md:aspect-[16/10]">
         {project.image ? (
           <div
             className="pointer-events-none absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover/laptop:scale-[1.02]"
@@ -39,9 +39,9 @@ function ProjectArticle({
           <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${project.accent}`} />
         )}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-        <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover/project:bg-black/45 group-focus-visible/project:bg-black/45">
-          <span className="font-sans text-base font-bold uppercase tracking-[0.3em] text-white opacity-0 transition-opacity duration-300 group-hover/project:opacity-100 group-focus-visible/project:opacity-100 md:text-lg">
-            Preview
+        <div className="pointer-events-none absolute inset-0 z-[5] flex items-center justify-center bg-black/0 transition-colors duration-300 group-hover/project:bg-black/50 group-focus-visible/project:bg-black/50">
+          <span className="rounded-full border border-white/40 bg-black/60 px-5 py-2.5 font-sans text-xs font-bold uppercase tracking-[0.22em] text-white opacity-0 shadow-lg backdrop-blur-sm transition-opacity duration-300 group-hover/project:opacity-100 group-focus-visible/project:opacity-100 md:text-sm">
+            View case study
           </span>
         </div>
         <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-10 p-6 md:p-8 lg:p-10">
@@ -68,14 +68,14 @@ function ProjectArticle({
       }}
     >
       {project.href ? (
-        <div className="group/project relative w-full">
-          {/* Full-card hit target — click anywhere on the laptop to open the case study. */}
+        <div className="group/project relative w-full rounded-sm ring-1 ring-white/0 transition-[box-shadow,ring-color] duration-300 hover:ring-white/25">
           <Link
             to={project.href}
-            className="absolute inset-0 z-0 rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            aria-label={`View ${project.title} case study`}
-          />
-          <div className="relative z-10">{screenContent}</div>
+            className="relative z-10 block cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/90 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            aria-label={`Open ${project.title} project`}
+          >
+            {screenContent}
+          </Link>
         </div>
       ) : (
         <div className="group/project w-full">{screenContent}</div>
@@ -269,7 +269,7 @@ export function Projects({ scrollContainerRef }: ProjectsProps) {
     >
       <div className="mx-auto max-w-[1600px] pb-32 md:pb-40">
         {/* Full-bleed sticky headline — vertically centered in the scrollport (below nav) */}
-        <div className="sticky top-24 z-20 md:top-28">
+        <div className="pointer-events-none sticky top-24 z-20 md:top-28">
           <div className="flex min-h-[calc(100svh-6rem)] flex-col justify-center md:min-h-[calc(100svh-7rem)]">
             <div className="relative left-1/2 w-screen max-w-[100vw] -translate-x-1/2">
             <div
